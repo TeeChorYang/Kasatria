@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>three.js css3d - periodic table</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			a {
+				color: #8ff;
+			}
+
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+			}
+
+			.element {
+				width: 120px;
+				height: 160px;
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.5);
+				border: 1px solid rgba(127,255,255,0.25);
+				font-family: Helvetica, sans-serif;
+				text-align: center;
+				line-height: normal;
+				cursor: default;
+			}
+
+			.element:hover {
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.75);
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+				.element .number {
+					position: absolute;
+					top: 20px;
+					right: 20px;
+					font-size: 20px;
+					color: rgba(127,255,255,0.75);
+				}
+
+				.element .symbol {
+					position: absolute;
+					top: 40px;
+					left: 0px;
+					right: 0px;
+					font-size: 25px;
+					font-weight: bold;
+					color: rgba(255,255,255,0.75);
+					text-shadow: 0 0 10px rgba(0,255,255,0.95);
+				}
+
+				.element .details {
+					position: absolute;
+					bottom: 15px;
+					left: 0px;
+					right: 0px;
+					font-size: 20px;
+					color: rgba(127,255,255,0.75);
+				}
+
+			button {
+				color: rgba(127,255,255,0.75);
+				background: transparent;
+				outline: 1px solid rgba(127,255,255,0.75);
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,0.75);
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - periodic table.</div>
+		<div id="container"></div>
+		<div id="menu">
+			<button id="table">TABLE</button>
+			<button id="sphere">SPHERE</button>
+			<button id="helix">HELIX</button>
+			<button id="grid">GRID</button>
+			<button id="cone">CONE</button>
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+			import { ConeGeometry } from 'three';
+
+			import TWEEN from 'three/addons/libs/tween.module.js';
+			import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+			import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+			const table = [
+			'Vail', 'M', '51', 1, 1,
+			'Rica', 'F', '42', 18, 1,
+			'Kipper', 'M', '44', 1, 2,
+			'Rodina', 'F', '54', 2, 2,
+			'Aguste', 'M', '57', 13, 2,
+			'Deidre', 'F', '64', 14, 2,
+			'Jacintha', 'F', '50', 15, 2,
+			'Binnie', 'F', '27', 16, 2,
+			'Patrice', 'F', '52', 17, 2,
+			'Eliza', 'F', '20', 18, 2,
+			'Amandie', 'F', '38', 1, 3,
+			'Fabien', 'M', '24', 2, 3,
+			'Devin', 'F', '19', 13, 3,
+			'Kylen', 'F', '35', 14, 3,
+			'Katrinka', 'F', '28', 15, 3,
+			'Gizela', 'F', '47', 16, 3,
+			'Vanny', 'F', '57', 17, 3,
+			'Shanon', 'F', '41', 18, 3,
+			'Von', 'M', '47', 1, 4,
+			'Dario', 'M', '24', 2, 4,
+			'Willamina', 'F', '43', 13, 4,
+			'Pedro', 'M', '48', 14, 4,
+			'Elianore', 'F', '36', 15, 4,
+			'Dalston', 'M', '69', 16, 4,
+			'Fritz', 'M', '38', 17, 4,
+			'Kate', 'F', '42', 18, 4,
+			'Allyn', 'M', '19', 1, 5,
+			'Rebekkah', 'F', '37', 2, 5,
+			'Karil', 'F', '19', 3, 5,
+			'Sheffield', 'M', '44', 4, 5,
+			'Selig', 'M', '39', 5, 5,
+			'Jeniffer', 'F', '62', 6, 5,
+			'Jaquith', 'F', '20', 7, 5,
+			'Danyette', 'F', '65', 8, 5,
+			'Mervin', 'M', '47', 9, 5,
+			'Heida', 'F', '24', 10, 5,
+			'Giorgi', 'M', '49', 11, 5,
+			'Hirsch', 'M', '55', 12, 5,
+			'Dotti', 'F', '68', 13, 5,
+			'Tobe', 'M', '36', 14, 5,
+			'Deloris', 'F', '61', 15, 5,
+			'Karol', 'F', '29', 16, 5,
+			'Sile', 'F', '46', 17, 5,
+			'Hank', 'M', '39', 18, 5,
+			'Nara', 'F', '63', 1, 6,
+			'Huntington', 'M', '21', 2, 6,
+			'Ignacius', 'M', '38', 3, 6,
+			'Helen-elizabeth', 'F', '39', 4, 6,
+			'Ebba', 'F', '65', 5, 6,
+			'Royce', 'M', '52', 6, 6,
+			'Fidelio', 'M', '61', 7, 6,
+			'Lem', 'M', '17', 8, 6,
+			'Abbie', 'F', '19', 9, 6,
+			'Arthur', 'M', '66', 10, 6,
+			'Shandeigh', 'F', '56', 11, 6,
+			'Aldo', 'M', '67', 12, 6,
+			'Britt', 'F', '44', 13, 6,
+			'Florinda', 'F', '38', 14, 6,
+			'Seumas', 'M', '17', 15, 6,
+			'Godart', 'M', '29', 16, 6,
+			'Donnajean', 'F', '53', 17, 6,
+			'Job', 'M', '40', 18, 6,
+			'Muhammad', 'M', '52', 1, 7,
+			'Cammy', 'M', '48', 2, 7,
+			'Masha', 'F', '52', 4, 10,
+			'Terri', 'F', '16', 5, 10,
+			'Rickey', 'M', '65', 6, 10,
+			'Odelle', 'F', '34', 7, 10,
+			'Emyle', 'F', '66', 8, 10,
+			'Devlen', 'M', '30', 9, 10,
+			'Hali', 'F', '27', 10, 10,
+			'Sander', 'M', '64', 11, 10,
+			'Bailie', 'M', '48', 12, 10,
+			'Annemarie', 'F', '68', 13, 10,
+			'Reube', 'M', '34', 14, 10,
+			'Demetris', 'M', '24', 15, 10,
+			'Marti', 'F', '48', 16, 10,
+			'Ulises', 'M', '65', 17, 10,
+			'Niles', 'M', '38', 18, 10,
+			'Vail', 'M', '51', 4, 7,
+			'Desmund', 'M', '23', 5, 7,
+			'Falkner', 'M', '69', 6, 7,
+			'Peggi', 'F', '34', 7, 7,
+			'Doyle', 'M', '26', 8, 7,
+			'Tobe', 'M', '32', 9, 7,
+			'Freeman', 'M', '47', 10, 7,
+			'Sergent', 'M', '27', 11, 7,
+			'Padgett', 'M', '67', 12, 7,
+			'Darb', 'M', '29', 13, 7,
+			'Alvie', 'M', '26', 14, 7,
+			'Krishnah', 'M', '38', 15, 7,
+			'Dilan', 'M', '25', 16, 7,
+			'Dyann', 'F', '64', 17, 7,
+			'Monty', 'M', '52', 18, 7
+
+			];
+
+			let camera, scene, renderer;
+			let controls;
+
+			const objects = [];
+			const targets = { table: [], sphere: [], helix: [], grid: [], cone: [] };
+
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 3000;
+
+				scene = new THREE.Scene();
+
+				// table
+
+				for ( let i = 0; i < table.length; i += 5 ) {
+
+					const element = document.createElement( 'div' );
+					element.className = 'element';
+					if(table[i+1]=="M"){
+					element.style.backgroundColor = 'rgba(0,0,255,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+				}
+					else{
+						element.style.backgroundColor = 'rgba(255,0,0,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+					}
+
+					const number = document.createElement( 'div' );
+					number.className = 'number';
+					number.textContent = ( i / 5 ) + 1;
+					element.appendChild( number );
+
+					const symbol = document.createElement( 'div' );
+					symbol.className = 'symbol';
+					symbol.textContent = table[ i ];
+					element.appendChild( symbol );
+
+					const details = document.createElement( 'div' );
+					details.className = 'details';
+					details.innerHTML = table[ i + 1 ] + '<br>' + table[ i + 2 ];
+					element.appendChild( details );
+
+					const objectCSS = new CSS3DObject( element );
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+					scene.add( objectCSS );
+
+					objects.push( objectCSS );
+
+					//
+
+					const object = new THREE.Object3D();
+					object.position.x = ( table[ i + 3 ] * 140 ) - 1330;
+					object.position.y = - ( table[ i + 4 ] * 180 ) + 990;
+
+					targets.table.push( object );
+
+				}
+
+				// sphere
+
+				const vector = new THREE.Vector3();
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const phi = Math.acos( - 1 + ( 2 * i ) / l );
+					const theta = Math.sqrt( l * Math.PI ) * phi;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromSphericalCoords( 800, phi, theta );
+
+					vector.copy( object.position ).multiplyScalar( 2 );
+
+					object.lookAt( vector );
+
+					targets.sphere.push( object );
+
+				}
+
+				// helix
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const theta = i * 0.175 + Math.PI;
+					const y = - ( i * 8 ) + 450;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromCylindricalCoords( 900, theta, y );
+
+					vector.x = object.position.x * 2;
+					vector.y = object.position.y;
+					vector.z = object.position.z * 2;
+
+					object.lookAt( vector );
+
+					targets.helix.push( object );
+
+				}
+
+				// grid
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = new THREE.Object3D();
+
+					object.position.x = ( ( i % 5 ) * 400 ) - 800;
+					object.position.y = ( - ( Math.floor( i / 5 ) % 5 ) * 400 ) + 800;
+					object.position.z = ( Math.floor( i / 25 ) ) * 1000 - 2000;
+
+					targets.grid.push( object );
+
+				}
+
+			// cone
+			const numRows = 7; // Adjust the number of rows
+			const numCols = 18; // Adjust the number of columns
+			const coneSpacing = 10; // Adjust the spacing between cones
+
+			for (let row = 0; row < numRows; row++) {
+				for (let col = 0; col < numCols; col++) {
+					const object = new THREE.Object3D();
+
+					const geometry = new THREE.ConeGeometry(15, 40, 16); // Adjust cone parameters as needed
+					const material = new THREE.MeshLambertMaterial({ color: 0xfb8e00 });
+					const mesh = new THREE.Mesh(geometry, material);
+
+					object.add(mesh);
+
+					const phi = (row / numRows) * Math.PI; // Distribute rows along the cone shape
+					const theta = (col / numCols) * (Math.PI * 2); // Distribute columns around the circle
+
+					const radius = phi * 500; // Adjust the radius to create the cone shape
+					const y = -radius + 450;
+
+					object.position.setFromCylindricalCoords(radius, theta, y);
+
+					scene.add(object);
+
+					targets.cone.push(object);
+				}
+			}
+
+
+
+
+
+				//
+
+				renderer = new CSS3DRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+				//
+
+				controls = new TrackballControls( camera, renderer.domElement );
+				controls.minDistance = 500;
+				controls.maxDistance = 6000;
+				controls.addEventListener( 'change', render );
+
+				const buttonTable = document.getElementById( 'table' );
+				buttonTable.addEventListener( 'click', function () {
+
+					transform( targets.table, 2000 );
+
+				} );
+
+				const buttonSphere = document.getElementById( 'sphere' );
+				buttonSphere.addEventListener( 'click', function () {
+
+					transform( targets.sphere, 2000 );
+
+				} );
+
+				const buttonHelix = document.getElementById( 'helix' );
+				buttonHelix.addEventListener( 'click', function () {
+
+					transform( targets.helix, 2000 );
+
+				} );
+
+				const buttonGrid = document.getElementById( 'grid' );
+				buttonGrid.addEventListener( 'click', function () {
+
+					transform( targets.grid, 2000 );
+
+				} );
+
+				const buttonCone = document.getElementById( 'cone' );
+				buttonCone.addEventListener( 'click', function () {
+
+					transform( targets.cone, 2000 );
+
+				} );
+
+				transform( targets.table, 2000 );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function transform( targets, duration ) {
+
+				TWEEN.removeAll();
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = objects[ i ];
+					const target = targets[ i ];
+
+					new TWEEN.Tween( object.position )
+						.to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+					new TWEEN.Tween( object.rotation )
+						.to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+				}
+
+				new TWEEN.Tween( this )
+					.to( {}, duration * 2 )
+					.onUpdate( render )
+					.start();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				TWEEN.update();
+
+				controls.update();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
